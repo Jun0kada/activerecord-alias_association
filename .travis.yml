@@ -1,0 +1,40 @@
+sudo: false
+language: ruby
+
+before_install:
+  - gem i rubygems-update -v '<3' && update_rubygems
+  - gem i bundler -v '<2'
+
+matrix:
+  include:
+    - rvm: 2.6.0
+      gemfile: gemfiles/activerecord.5.2.x.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/activerecord.5.1.x.gemfile
+    - rvm: 2.6.0
+      gemfile: gemfiles/activerecord.5.0.x.gemfile
+
+    - rvm: 2.5.3
+      gemfile: gemfiles/activerecord.5.2.x.gemfile
+
+    - rvm: 2.4.5
+      gemfile: gemfiles/activerecord.5.2.x.gemfile
+
+    - rvm: 2.3.8
+      gemfile: gemfiles/activerecord.5.2.x.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/activerecord.4.2.x.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/activerecord.4.1.x.gemfile
+    - rvm: 2.3.8
+      gemfile: gemfiles/activerecord.4.0.x.gemfile
+
+    - rvm: 2.2.10
+      gemfile: gemfiles/activerecord.5.2.x.gemfile
+
+    - rvm: ruby-head
+      gemfile: gemfiles/activerecord.5.2.x.gemfile
+
+
+  allow_failures:
+    - rvm: ruby-head
