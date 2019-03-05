@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/Jun0kada/activerecord-alias_association.svg?branch=master)](https://travis-ci.org/Jun0kada/activerecord-alias_association)
 
+ActiveRecord Association alias
+`belongs_to`, `has_one`, `has_many`, `has_many through`
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -20,7 +23,31 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+class User < ActiveRecord::Base
+  belongs_to :team, alias: :organization
+
+  has_one :profile, alias: :info
+
+  has_many :posts, alias: :articles
+
+  has_many :post_images, through: :users, source: :images, alias: :article_images
+
+  # or
+
+  belongs_to :team
+  alias_association :organization, :team
+
+  has_one :profile
+  alias_association :info, :profile
+
+  has_many :posts
+  alias_association :articles, :posts
+
+  has_many :post_images, through: :users, source: :images
+  alias_association :article_images, :post_images
+end
+```
 
 ## Development
 
