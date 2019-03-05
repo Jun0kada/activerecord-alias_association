@@ -26,8 +26,6 @@ matrix:
       gemfile: gemfiles/activerecord.4.2.x.gemfile
     - rvm: 2.3.8
       gemfile: gemfiles/activerecord.4.1.x.gemfile
-    - rvm: 2.3.8
-      gemfile: gemfiles/activerecord.4.0.x.gemfile
 
     - rvm: 2.2.10
       gemfile: gemfiles/activerecord.5.2.x.gemfile
