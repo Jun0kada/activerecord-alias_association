@@ -26,6 +26,16 @@ module ActiveRecord
         CODE
       end
 
+      def reflect_on_association(association)
+        reflection = super(association)
+
+        if reflection.nil? && method_defined?(association)
+          reflection = super(instance_method(association).original_name)
+        end
+
+        reflection
+      end
+
       def _reflect_on_association(association)
         reflection = super(association)
 
