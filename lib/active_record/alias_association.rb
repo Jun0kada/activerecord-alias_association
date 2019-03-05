@@ -18,7 +18,7 @@ module ActiveRecord
       end
     end
 
-    class_methods do
+    module ClassMethods
       def alias_association(new_name, old_name)
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           alias_method :#{new_name}, :#{old_name}
