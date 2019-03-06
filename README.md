@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Jun0kada/activerecord-alias_association.svg?branch=master)](https://travis-ci.org/Jun0kada/activerecord-alias_association)
 
 ActiveRecord Association alias
-`belongs_to`, `has_one`, `has_many`, `has_many through`
+`belongs_to`, `has_one`, `has_many`, `has_and_belongs_to_many`
 
 ## Installation
 
@@ -25,13 +25,15 @@ Or install it yourself as:
 
 ```ruby
 class User < ActiveRecord::Base
-  belongs_to :team, alias: :organization
+  belongs_to :team, alias: [:organization, :club]
 
   has_one :profile, alias: :info
 
   has_many :posts, alias: :articles
 
   has_many :post_images, through: :users, source: :images, alias: :article_images
+
+  has_and_belongs_to_many :tags, alias: :categories
 
   # or
 
@@ -46,7 +48,38 @@ class User < ActiveRecord::Base
 
   has_many :post_images, through: :users, source: :images
   alias_association :article_images, :post_images
+
+  has_and_belongs_to_many :tags
+  alias_association :categories, :tags
 end
+```
+
+### Accessors & Constructors
+
+```ruby
+user = User.first
+
+# belongs_to, has_one
+user.organization
+user.organization=
+user.build_organization
+user.create_organization
+user.create_organization!
+user.reload_organization
+
+# nas_many, has_and_belongs_to_many
+user.posts
+user.posts=
+user.post_ids
+user.post_ids=
+```
+
+### ActiveRecord QueryMethods
+
+```ruby
+User.includes(:organization, :posts, :tags)
+User.preload(:organization, :posts, :tags)
+User.eager_load(:organization, :posts, :tags)
 ```
 
 ## Contributing
