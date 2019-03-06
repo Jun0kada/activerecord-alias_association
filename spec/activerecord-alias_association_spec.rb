@@ -12,16 +12,34 @@ RSpec.describe Activerecord::AliasAssociation do
         comment: [:review, :one_comment]
       },
       Comment => {
-        user: [:owner, :commentor]
+        user: [:owner, :commentor],
+        categories: [:tags]
+      },
+      Category => {
+        comments: [:posts]
       }
     }
   end
 
-  it 'should has alias method' do
-    alias_associations.each do |klass, v|
-      v.each do |old_method, new_methods|
-        new_methods.each do |new_method|
-          expect(klass.instance_method(new_method).original_name).to eq(klass.instance_method(old_method).name)
+  context 'association alias defined methods' do
+    it 'should has association methods' do
+      alias_associations.each do |klass, v|
+        v.each do |_, alias_associations|
+          alias_associations.each do |alias_association|
+            expect(klass.instance_methods.include?(alias_association)).to eq(true)
+            expect(klass.instance_methods.include?("#{alias_association}=".to_sym)).to eq(true)
+
+            case klass.reflect_on_association(alias_association).macro
+            when :belongs_to, :has_one
+              expect(klass.instance_methods.include?("build_#{alias_association}".to_sym)).to eq(true)
+              expect(klass.instance_methods.include?("create_#{alias_association}".to_sym)).to eq(true)
+              expect(klass.instance_methods.include?("create_#{alias_association}!".to_sym)).to eq(true)
+              expect(klass.instance_methods.include?("reload_#{alias_association}".to_sym)).to eq(true)
+            when :has_many, :has_and_belongs_to_many
+              expect(klass.instance_methods.include?("#{alias_association.to_s.singularize}_ids".to_sym)).to eq(true)
+              expect(klass.instance_methods.include?("#{alias_association.to_s.singularize}_ids=".to_sym)).to eq(true)
+            end
+          end
         end
       end
     end
@@ -34,7 +52,8 @@ RSpec.describe Activerecord::AliasAssociation do
       team = Team.create(name: 'team')
       2.times do
         user = User.create(team: team, name: 'john')
-        Comment.create(user: user, body: 'comment!')
+        comment = Comment.create(user: user, body: 'comment!')
+        comment.categories.create(name: 'category')
       end
     end
 
@@ -54,7 +73,9 @@ RSpec.describe Activerecord::AliasAssociation do
       it 'can not be used' do
         alias_associations.each do |klass, v|
           ar_query_methods.each do |query_method|
-            expect { klass.send(query_method, :not_alias_association).load }.to raise_error(/(Association named 'not_alias_association' was not found|association named 'not_alias_association')/)
+            expect {
+              klass.send(query_method, :not_alias_association).load
+            }.to raise_error(ActiveRecord::ConfigurationError, /not_alias_association/)
           end
         end
       end

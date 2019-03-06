@@ -34,6 +34,13 @@ end
 
 class Comment < ActiveRecord::Base
   belongs_to :user, alias: [:owner, :commentor]
+
+  has_and_belongs_to_many :categories, alias: :tags
+end
+
+class Category < ActiveRecord::Base
+  has_and_belongs_to_many :comments
+  alias_association :posts, :comments
 end
 
 ActiveRecord::Migration.verbose = false
