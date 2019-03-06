@@ -9,14 +9,19 @@ RSpec.describe Activerecord::AliasAssociation do
       },
       User => {
         team: [:club, :organization],
-        comment: [:review, :one_comment]
+        comment: [:review, :one_comment],
+        images: [:pictures]
       },
       Comment => {
         user: [:owner, :commentor],
-        categories: [:tags]
+        categories: [:tags],
+        images: [:pictures]
       },
       Category => {
         comments: [:posts]
+      },
+      Image => {
+        imageable: [:picturable]
       }
     }
   end
@@ -29,12 +34,17 @@ RSpec.describe Activerecord::AliasAssociation do
             expect(klass.instance_methods.include?(alias_association)).to eq(true)
             expect(klass.instance_methods.include?("#{alias_association}=".to_sym)).to eq(true)
 
-            case klass.reflect_on_association(alias_association).macro
+            reflection = klass.reflect_on_association(alias_association)
+
+            case reflection.macro
             when :belongs_to, :has_one
-              expect(klass.instance_methods.include?("build_#{alias_association}".to_sym)).to eq(true)
-              expect(klass.instance_methods.include?("create_#{alias_association}".to_sym)).to eq(true)
-              expect(klass.instance_methods.include?("create_#{alias_association}!".to_sym)).to eq(true)
               expect(klass.instance_methods.include?("reload_#{alias_association}".to_sym)).to eq(true)
+
+              unless reflection.polymorphic?
+                expect(klass.instance_methods.include?("build_#{alias_association}".to_sym)).to eq(true)
+                expect(klass.instance_methods.include?("create_#{alias_association}".to_sym)).to eq(true)
+                expect(klass.instance_methods.include?("create_#{alias_association}!".to_sym)).to eq(true)
+              end
             when :has_many, :has_and_belongs_to_many
               expect(klass.instance_methods.include?("#{alias_association.to_s.singularize}_ids".to_sym)).to eq(true)
               expect(klass.instance_methods.include?("#{alias_association.to_s.singularize}_ids=".to_sym)).to eq(true)
@@ -49,11 +59,12 @@ RSpec.describe Activerecord::AliasAssociation do
     let(:ar_query_methods) { [:includes, :preload, :eager_load] }
 
     before do
-      team = Team.create(name: 'team')
+      team = Team.create!(name: 'team')
       2.times do
-        user = User.create(team: team, name: 'john')
-        comment = Comment.create(user: user, body: 'comment!')
-        comment.categories.create(name: 'category')
+        user = User.create!(team: team, name: 'john')
+        user.images.create!
+        comment = user.create_comment!(body: 'comment!')
+        comment.categories.create!(name: 'category')
       end
     end
 
@@ -62,6 +73,8 @@ RSpec.describe Activerecord::AliasAssociation do
         ar_query_methods.each do |query_method|
           v.each do |_, alias_associations|
             alias_associations.each do |alias_association|
+              next if klass.reflect_on_association(alias_association).polymorphic? && query_method == :eager_load
+
               expect { klass.send(query_method, alias_association).load }.not_to raise_error
             end
           end

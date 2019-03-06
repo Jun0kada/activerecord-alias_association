@@ -25,6 +25,8 @@ end
 class User < ActiveRecord::Base
   has_many :comments
 
+  has_many :images, as: :imageable, alias: :pictures
+
   has_one :comment, alias: :review
   alias_association :one_comment, :comment
 
@@ -35,12 +37,18 @@ end
 class Comment < ActiveRecord::Base
   belongs_to :user, alias: [:owner, :commentor]
 
+  has_many :images, as: :imageable, alias: :pictures
+
   has_and_belongs_to_many :categories, alias: :tags
 end
 
 class Category < ActiveRecord::Base
   has_and_belongs_to_many :comments
   alias_association :posts, :comments
+end
+
+class Image < ActiveRecord::Base
+  belongs_to :imageable, polymorphic: true, alias: :picturable
 end
 
 ActiveRecord::Migration.verbose = false

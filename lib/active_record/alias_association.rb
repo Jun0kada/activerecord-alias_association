@@ -32,11 +32,16 @@ module ActiveRecord
         case reflection.macro
         when :belongs_to, :has_one
           generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-            alias_method "build_#{new_name}",   "build_#{old_name}"
-            alias_method "create_#{new_name}",  "create_#{old_name}"
-            alias_method "create_#{new_name}!", "create_#{old_name}!"
             alias_method "reload_#{new_name}",  "reload_#{old_name}"
           CODE
+
+          unless reflection.polymorphic?
+            generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+              alias_method "build_#{new_name}",   "build_#{old_name}"
+              alias_method "create_#{new_name}",  "create_#{old_name}"
+              alias_method "create_#{new_name}!", "create_#{old_name}!"
+            CODE
+          end
         when :has_many, :has_and_belongs_to_many
           generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
             alias_method "#{new_name.to_s.singularize}_ids",  "#{old_name.to_s.singularize}_ids"
